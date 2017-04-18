@@ -1,0 +1,21 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+
+ #dagos-letters-letter-control-area .approve, 
+ #dagos-letters-letter-control-area .unapproved .unapprove {
+ 	display: inline-block !important;
+ }
+
+ #dagos-letters-letter-control-area .Approve,
+ #dagos-letters-letter-control-area .Unapprove,
+ #dagos-letters-letter-control-area .edit,
+ #dagos-letters-letter-control-area .trash {
+ 	cursor: pointer;
+ }
+
+#replyrow {
+	display: none;
+}
+

@@ -1,0 +1,133 @@
+/**
+ * All of the CSS for your public-facing functionality should be
+ * included in this file.
+ */
+
+#dagos-letters {
+	position: relative;
+}
+
+#dagos-letters h5 {
+	font-size: 1.1rem;
+	margin: 1em 0 0 0;
+}
+
+
+ /* FORM SUBMIT AREA
+======================================================================*/
+
+#dagos-letters-submit {
+	border-bottom: 1px solid #dad7d7;
+	padding-bottom: 2em;
+}
+
+#dagos-letters-submit label {
+	font-size: 1rem;
+} 
+
+#dagos-letters-submit label span {
+	font-size: .8em;
+	color:  red;
+}
+
+#dagos-letters-submit input {
+	margin: .5em 0;
+	font-family: National, Helvetica, Arial, sans-serif;
+}
+
+#dagos-letters-submit select {
+	border: 0;
+	font-weight: 700;
+	border-bottom: 1px solid #dad7d7;
+	font-family: National, Helvetica, Arial, sans-serif;
+}
+
+#dagos-letters-submit p {
+	font-size: 1rem;
+}
+
+#dagos-letters-form-container p,
+.dagos-letters-type {
+	margin-bottom: 1em;
+}
+
+#dagos-letters-form-container>p:last-of-type {
+	margin-bottom: 0;
+}
+
+.dagos-letters-header {
+	margin-bottom: 1em;
+}
+
+.dagos-letters-content textarea {
+	width: 100%;
+	margin-top: .5em;
+	font-family: National, Helvetica, Arial, sans-serif;
+}
+
+#dagos-letters-submit .dagos-letters-message {
+	font-size: 2rem;
+}
+
+ /* APPROVED LETTERS AREA
+======================================================================*/
+.dagos-letters-letter {
+	margin-top: 2em;
+	position: relative;
+	border-bottom: 1px solid #efefef;
+    padding-bottom: 2em;
+}
+
+.dagos-letters-letter:last-of-type {
+	border-bottom: none;
+}
+
+.dagos-letters-letter a {
+	color: #00aeef;
+    text-decoration: none;
+}
+
+.dagos-letters-letter a:hover {
+    text-decoration: underline;
+}
+
+.dagos-letters-letter p {
+	font-family: Tiempos, Georgia, Times, serif;
+	line-height: 1.8em;
+	font-size: 1rem;
+}
+
+.dagos-letters-letter>div:first-of-type p {
+	margin-bottom: 1em;
+}
+
+.dagos-letters-letter>div:first-of-type p:first-of-type:before {
+    position: absolute;
+    top: 5px;
+    left: -5%;
+    color: #a5a5a5;
+    content: "\201F";
+	font-size: 3rem;
+    font-family: National, Helvetica, Arial, sans-serif;
+}
+
+.dagos-letters-letter>div:first-of-type p:last-of-type:after {
+	content: "\201D";
+}
+
+.dagos-letters-letter>div:last-of-type p {
+	text-align: right;
+	margin-top: .5em;
+	font-style: italic;
+	font-size: .8rem;
+}
+
+@media screen and (min-width:768px) {
+	.dagos-letters-letter p {
+		line-height: 1.5em;
+	}
+
+	.dagos-letters-letter p:first-of-type:before {
+	    left: -4%;
+	}
+}
