@@ -161,7 +161,6 @@ class Dagos_Letters_Admin {
 	}
 
 	public function dagos_letters_email_editors( $letter_data ) {
-		$url = get_the_permalink( $letter_data['letter_post_ID'] );
 
 		$to = 'bayreporta@gmail.com';
 
@@ -211,12 +210,8 @@ class Dagos_Letters_Admin {
 	 */
 	public function dagos_letters_submission( $letter_data ) {
 
-		$letter_post_ID = 0;
 		$letter_type = $letter_author = $letter_author_email = $letter_author_url = $letter_content = null;
 
-		if ( isset( $letter_data['letter_post_ID'] ) ) {
-			$letter_post_ID = (int) $letter_data['letter_post_ID'];
-		}
 		if ( isset( $letter_data['type'] ) ) {
 			$letter_type = trim( strip_tags( $letter_data['type'] ) );
 		}
@@ -233,75 +228,7 @@ class Dagos_Letters_Admin {
 			$letter_content = trim( $letter_data['letter'] );
 		}
 
-		$post = get_post( $letter_post_ID );
-
-		if ( empty( $post->comment_status ) ) {
-
-			/**
-			 * Fires when a letter is attempted on a post that does not exist.
-			 **/
-
-			do_action( 'comment_id_not_found', $letter_post_ID );
-
-			return new WP_Error( 'comment_id_not_found' );
-		}
-
-		// get_post_status() will get the parent status for attachments.
-		$status = get_post_status( $post );
-
-		if ( ( 'private' == $status ) && ! current_user_can( 'read_post', $letter_post_ID ) ) {
-			return new WP_Error( 'comment_id_not_found' );
-		}
-
 		$status_obj = get_post_status_object( $status );
-
-
-		if ( ! comments_open( $letter_post_ID ) ) {
-
-			/**
-			 * Fires when a letter is attempted on a post that has letters closed.
-			 */
-
-			do_action( 'comment_closed', $letter_post_ID );
-
-			return new WP_Error( 'comment_closed', __( 'Sorry, comments are closed for this item.' ), 403 );
-
-		} elseif ( 'trash' == $status ) {
-
-			/**
-			 * Fires when a letter is attempted on a trashed post.
-			 */
-
-			do_action( 'comment_on_trash', $letter_post_ID );
-
-			return new WP_Error( 'comment_on_trash' );
-
-		} elseif ( ! $status_obj->public && ! $status_obj->private ) {
-
-			/**
-			 * Fires when a letter is attempted on a post in draft mode.
-			 */
-			do_action( 'comment_on_draft', $letter_post_ID );
-
-			return new WP_Error( 'comment_on_draft' );
-
-		} elseif ( post_password_required( $letter_post_ID ) ) {
-
-			/**
-			 * Fires when a letter is attempted on a password-protected post.
-			 */
-			do_action( 'comment_on_password_protected', $letter_post_ID );
-
-			return new WP_Error( 'comment_on_password_protected' );
-
-		} else {
-
-			/**
-			 * Fires before a letter is posted.
-			 */
-			do_action( 'pre_comment_on_post', $letter_post_ID );
-
-		}
 
 		// If the user is logged in
 		$user = wp_get_current_user();
@@ -328,7 +255,6 @@ class Dagos_Letters_Admin {
 		}
 
 		$letterdata = compact(
-			'letter_post_ID',
 			'letter_author',
 			'letter_author_email',
 			'letter_content',
@@ -363,8 +289,6 @@ class Dagos_Letters_Admin {
 		 */
 
 		$letterdata = apply_filters( 'preprocess_comment', $letterdata );
-
-		$letterdata['letter_post_ID'] = (int) $letterdata['letter_post_ID'];
 
 		if ( isset( $letterdata['letter_user_ID'] ) && $prefiltered_user_id !== (int) $letterdata['letter_user_ID'] ) {
 			$letterdata['letter_user_ID'] = $letterdata['letter_user_ID'] = (int) $letterdata['letter_user_ID'];
@@ -416,7 +340,6 @@ class Dagos_Letters_Admin {
 		$letter_date     = ! isset( $data['letter_date'] )     ? current_time( 'mysql' )            : $data['letter_date'];
 		$letter_date_gmt = ! isset( $data['letter_date_gmt'] ) ? get_gmt_from_date( $letter_date ) : $data['letter_date_gmt'];
 
-		$letter_post_ID  = ! isset( $data['letter_post_ID'] )  ? 0  : $data['letter_post_ID'];
 		$letter_content  = ! isset( $data['letter_content'] )  ? '' : $data['letter_content'];
 		$letter_approved = ! isset( $data['letter_approved'] ) ? 0  : $data['letter_approved'];
 		$letter_featured = ! isset( $data['letter_featured'] ) ? 0  : $data['featured'];
@@ -425,7 +348,6 @@ class Dagos_Letters_Admin {
 		$letter_user_ID  = ! isset( $data['letter_user_ID'] ) ? 0 : $data['letter_user_ID'];
 		
 		$wpdb->insert( $wpdb->prefix . 'dagos_letters', array(
-			'letter_post_ID' 		=> $letter_post_ID,
 			'letter_featured' 		=> $letter_featured,
 			'letter_author' 		=> $letter_author,
 			'letter_author_email' 	=> $letter_author_email,

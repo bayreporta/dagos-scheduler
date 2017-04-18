@@ -25,6 +25,7 @@ if ( 'POST' != $_SERVER['REQUEST_METHOD'] ) {
 	header('Content-Type: text/plain');
 	exit;
 }
+var_dump($_POST);
 
 /** Sets up the WordPress Environment 
 ----------------------------------------------------*/
@@ -32,37 +33,38 @@ require( $_SERVER['DOCUMENT_ROOT'] . '/wp-load.php' );
 
 nocache_headers();
 
-$location = 'http://upholdingdemocracy.org/?page_id=189';
+$location = 'http://upholdingdemocracy.org/scheduling-form/';
 
 
 /** ReCAPTCHA checkin
 ----------------------------------------------------*/
 
 /** Sets up reCAPTCHA */
-require_once plugin_dir_path( __FILE__ ) . '\recaptchalib.php';
+require_once plugin_dir_path( __FILE__ ) . 'recaptchalib.php';
 
 $secret = "6Lfo1BgUAAAAAPqG6XTN4-hMBf5DEYgErYcTaHWc";
  
 $response = null;
  
-$reCaptcha = new ReCaptcha($secret);
-
-if ($_POST["g-recaptcha-response"]) {
+//$reCaptcha = new ReCaptcha($secret);
+/*
+if ( $_POST["g-recaptcha-response"] ) {
     $response = $reCaptcha->verifyResponse(
         $_SERVER["REMOTE_ADDR"],
         $_POST["g-recaptcha-response"]
     );
+
 } else {
 	$location .= '?verification';
 	wp_safe_redirect( $location );
 	exit;
-} 
+} */
 
 /** Validate email and add letter if human
 ----------------------------------------------------*/
 
-if ( !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL ) && $response->success && $response !== null ){
-	//$location .= '?error_email';
+if ( !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL ) /*&& $response->success && $response !== null*/ ){
+	$location .= '?error_email';
 } elseif ( $response->success && $response !== null ) {
 	//$status = Dagos_Letters_Admin::dagos_letters_submission( wp_unslash( $_POST ) );
 
@@ -70,6 +72,5 @@ if ( !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL ) && $response->success 
 
 	//$location .= '?' . $status;
 }
-
 //wp_safe_redirect( $location );
 exit;
