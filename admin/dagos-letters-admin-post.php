@@ -32,7 +32,7 @@ require( $_SERVER['DOCUMENT_ROOT'] . '/wp-load.php' );
 
 nocache_headers();
 
-$location = get_the_permalink($_POST['letter_post_ID']);
+$location = 'http://upholdingdemocracy.org/?page_id=189';
 
 
 /** ReCAPTCHA checkin
@@ -62,14 +62,14 @@ if ($_POST["g-recaptcha-response"]) {
 ----------------------------------------------------*/
 
 if ( !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL ) && $response->success && $response !== null ){
-	$location .= '?error_email';
+	//$location .= '?error_email';
 } elseif ( $response->success && $response !== null ) {
-	$status = Dagos_Letters_Admin::dagos_letters_submission( wp_unslash( $_POST ) );
+	//$status = Dagos_Letters_Admin::dagos_letters_submission( wp_unslash( $_POST ) );
 
-	Dagos_Letters_Admin::dagos_letters_email_editors( $_POST );
+	//Dagos_Letters_Admin::dagos_letters_email_editors( $_POST );
 
-	$location .= '?' . $status;
+	//$location .= '?' . $status;
 }
 
-wp_safe_redirect( $location );
+//wp_safe_redirect( $location );
 exit;

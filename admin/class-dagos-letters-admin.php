@@ -1,6 +1,6 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 'On');
+//error_reporting(E_ALL);
+//ini_set('display_errors', 'On');
 
 /**
  * The admin-specific functionality of the plugin.
@@ -120,7 +120,7 @@ class Dagos_Letters_Admin {
 	     */
 	    //add_options_page( 'Dago\'s Letters Setup', 'Dago\'s Letters', 'manage_options', $this->plugin_name, array($this, 'display_dagos_letters_setup_page'));
 
-	    add_menu_page( 'Dago\'s Letters Admin', 'Dago\'s Letters', 'administrator', $this->plugin_name, array($this, 'display_dagos_letters_menu_page'));
+	    add_menu_page( 'Dago\'s Scheduler Admin', 'Dago\'s Scheduler', 'administrator', $this->plugin_name, array($this, 'display_dagos_letters_menu_page'));
 
 	}
 
