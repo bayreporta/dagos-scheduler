@@ -1,0 +1,15 @@
+#schedule-form-container {
+	margin-top: 2em;
+}
+
+#schedule-form {
+
+}
+
+#schedule-form>div {
+	margin-bottom: 1em;
+}
+
+#schedule-form span {
+	color: red;
+}
