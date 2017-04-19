@@ -24,14 +24,16 @@ $table = $wpdb->prefix . 'dagos_letters';
 ----------------------------------------------------*/
 
 if ( $_REQUEST['target'] ) {
+	$id = stripslashes( $_REQUEST['id'] );
+
 	if ( $_REQUEST['target'] === 'Approve' ){
 		$wpdb->update( 
 			$table,
 			array( //column
-				'letter_approved' => '1' 
+				'letter_complete' => '1' 
 			),
 			array( //where
-				'id' => $_REQUEST['id']
+				'id' => $id
 			),
 			array( //format
 				'%s'
@@ -40,17 +42,16 @@ if ( $_REQUEST['target'] ) {
 				'%d'
 			)
 		);
-		Dagos_Letters_Admin::dagos_letters_email_submitter( $_REQUEST['email'], $_REQUEST['article'] );
 		unset($q);
 		
 	} elseif ( $_REQUEST['target'] === 'Unapprove' ){
 		$wpdb->update( 
 			$table,
 			array( //column
-				'letter_approved' => '0' 
+				'letter_complete' => '0' 
 			),
 			array( //where
-				'id' => $_REQUEST['id']
+				'id' => $id
 			),
 			array( //format
 				'%s'
@@ -63,7 +64,7 @@ if ( $_REQUEST['target'] ) {
 		$wpdb->delete( 
 			$table,			
 			array( //where
-				'id' => $_REQUEST['id']
+				'id' => $id
 			),
 			array( //where format
 				'%d'
@@ -74,16 +75,21 @@ if ( $_REQUEST['target'] ) {
 
 /** #2: UPDATE LETTERS FROM ADMIN SCREEN
 ----------------------------------------------------*/
-if ( $_REQUEST['postid'] ) {
+if ( $_REQUEST['content'] ) {
+	$id = stripslashes( $_REQUEST['id'] );
+	$name = stripslashes( $_REQUEST["name"] );
+	$email = stripslashes( $_REQUEST["email"] );
+	$content = stripslashes( $_REQUEST["content"] );
+
 	$wpdb->update( 
 		$table,
 		array( //column
-			'letter_author' => $_REQUEST['name'],
-			'letter_author_email' => $_REQUEST['email'],
-			'letter_content' => $_REQUEST['content']
+			"letter_name" => $name,
+			'letter_email' => $email,
+			'letter_content' => $content
 		),
 		array( //where
-			'id' => $_REQUEST['id']
+			'id' => $id
 		),
 		array( //format
 			'%s',

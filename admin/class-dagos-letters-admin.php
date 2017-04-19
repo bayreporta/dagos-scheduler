@@ -195,7 +195,7 @@ class Dagos_Letters_Admin {
 
 		$header = "From: josborn25@gmail.com"; //need to change this
 
-		wp_mail( $to, $subject, $msg, $header );
+		//wp_mail( $to, $subject, $msg, $header );
 
 	}
 
@@ -210,56 +210,34 @@ class Dagos_Letters_Admin {
 	 */
 	public function dagos_letters_submission( $letter_data ) {
 
-		$letter_type = $letter_author = $letter_author_email = $letter_author_url = $letter_content = null;
+		$letter_represent = $letter_district = $letter_mtg_date = $letter_author = $letter_author_email = $letter_content = null;
 
-		if ( isset( $letter_data['type'] ) ) {
-			$letter_type = trim( strip_tags( $letter_data['type'] ) );
-		}
 		if ( isset( $letter_data['author'] ) && is_string( $letter_data['author'] ) ) {
 			$letter_author = trim( strip_tags( $letter_data['author'] ) );
 		}
 		if ( isset( $letter_data['email'] ) && is_string( $letter_data['email'] ) ) {
 			$letter_author_email = trim( $letter_data['email'] );
 		}
-		/*if ( isset( $letter_data['url'] ) && is_string( $letter_data['url'] ) ) {
-			$comment_author_url = trim( $letter_data['url'] );
-		}*/
-		if ( isset( $letter_data['letter'] ) && is_string( $letter_data['letter'] ) ) {
-			$letter_content = trim( $letter_data['letter'] );
+		if ( isset( $letter_data['content'] ) && is_string( $letter_data['content'] ) ) {
+			$letter_content = trim( $letter_data['content'] );
 		}
-
-		$status_obj = get_post_status_object( $status );
-
-		// If the user is logged in
-		$user = wp_get_current_user();
-		if ( $user->exists() ) {
-			if ( empty( $user->display_name ) ) {
-				$user->display_name=$user->user_login;
-			}
-			$letter_author       = $user->display_name;
-			$letter_author_email = $user->user_email;
-			$letter_author_url   = $user->user_url;
-			$letter_user_ID      = $user->ID;
-			if ( current_user_can( 'unfiltered_html' ) ) {
-				if ( ! isset( $letter_data['_wp_unfiltered_html_comment'] )
-					|| ! wp_verify_nonce( $letter_data['_wp_unfiltered_html_comment'], 'unfiltered-html-comment_' . $comment_post_ID )
-				) {
-					kses_remove_filters(); // start with a clean slate
-					kses_init_filters(); // set up the filters
-				}
-			}
-		} else {
-			if ( get_option( 'comment_registration' ) ) {
-				return new WP_Error( 'not_logged_in', __( 'Sorry, you must be logged in to comment.' ), 403 );
-			}
+		if ( isset( $letter_data['represent'] ) && is_string( $letter_data['represent'] ) ) {
+			$letter_represent = trim( $letter_data['represent'] );
+		}
+		if ( isset( $letter_data['district'] ) && is_string( $letter_data['district'] ) ) {
+			$letter_district = trim( $letter_data['district'] );
+		}
+		if ( isset( $letter_data['date'] ) && is_string( $letter_data['date'] ) ) {
+			$letter_mtg_date = trim( $letter_data['date'] );
 		}
 
 		$letterdata = compact(
 			'letter_author',
 			'letter_author_email',
 			'letter_content',
-			'letter_type',
-			'letter_user_ID'
+			'letter_represent',
+			'letter_district',
+			'letter_mtg_date'
 		);
 
 		$letter_id = Dagos_Letters_Admin::dagos_letter_create_letter( wp_slash( $letterdata ), true );
@@ -278,34 +256,11 @@ class Dagos_Letters_Admin {
 	public function dagos_letter_create_letter( $letterdata, $avoid_die = false ) {
 		global $wpdb;
 
-		if ( isset( $letterdata['letter_user_ID'] ) ) {
-			$letterdata['letter_user_ID'] = $letterdata['letter_user_ID'] = (int) $letterdata['letter_user_ID'];
-		}
-
-		$prefiltered_user_id = ( isset( $letterdata['letter_user_ID'] ) ) ? (int) $letterdata['letter_user_ID'] : 0;
-
 		/**
-		 * Filters a comment's data before it is sanitized and inserted into the database. Adds meta data
+		 * Filters data before it is sanitized and inserted into the database. Adds meta data
 		 */
 
 		$letterdata = apply_filters( 'preprocess_comment', $letterdata );
-
-		if ( isset( $letterdata['letter_user_ID'] ) && $prefiltered_user_id !== (int) $letterdata['letter_user_ID'] ) {
-			$letterdata['letter_user_ID'] = $letterdata['letter_user_ID'] = (int) $letterdata['letter_user_ID'];
-		} elseif ( isset( $letterdata['letter_user_ID'] ) ) {
-			$letterdata['letter_user_ID'] = (int) $letterdata['letter_user_ID'];
-		}
-
-		if ( ! isset( $letterdata['letter_author_IP'] ) ) {
-			$letterdata['letter_author_IP'] = $_SERVER['REMOTE_ADDR'];
-		}
-
-		$letterdata['letter_author_IP'] = preg_replace( '/[^0-9a-fA-F:., ]/', '', $letterdata['letter_author_IP'] );
-
-		if ( ! isset( $letterdata['letter_author_agent'] ) ) {
-			$letterdata['letter_author_agent'] = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT']: '';
-		}
-		$letterdata['letter_author_agent'] = substr( $letterdata['letter_author_agent'], 0, 254 );
 
 		if ( empty( $letterdata['letter_date'] ) ) {
 			$letterdata['letter_date'] = current_time('mysql');
@@ -317,7 +272,7 @@ class Dagos_Letters_Admin {
 
 		$letterdata = Dagos_Letters_Admin::dagos_letters_filter_letter($letterdata);
 
-		$letterdata['letter_approved'] = 0;
+		$letterdata['letter_complete'] = 0;
 
 		$letter_ID = Dagos_Letters_Admin::dagos_letter_insert_letter($letterdata);
 
@@ -332,33 +287,26 @@ class Dagos_Letters_Admin {
 		global $wpdb;
 		$data = wp_unslash( $letterdata );
 
-		$letter_author       	= ! isset( $data['letter_author'] )       ? '' : $data['letter_author'];
-		$letter_author_email	= ! isset( $data['letter_author_email'] ) ? '' : $data['letter_author_email'];
-		$letter_author_IP    	= ! isset( $data['letter_author_IP'] )    ? '' : $data['letter_author_IP'];
-		$letter_author_agent    = ! isset( $data['letter_author_agent'] )    ? '' : $data['letter_author_agent'];
+		$letter_author       	= ! isset( $data['letter_author'] )       	? '' : $data['letter_author'];
+		$letter_author_email	= ! isset( $data['letter_author_email'] ) 	? '' : $data['letter_author_email'];
+		$letter_date     		= ! isset( $data['letter_date'] )     		? current_time( 'mysql' )            : $data['letter_date'];
+		$letter_date_gmt 		= ! isset( $data['letter_date_gmt'] ) 		? get_gmt_from_date( $letter_date ) : $data['letter_date_gmt'];
+		$letter_content  		= ! isset( $data['letter_content'] )  		? '' : $data['letter_content'];
+		$letter_complete 		= ! isset( $data['letter_approved'] ) 		? 0  : $data['letter_complete'];
+		$letter_represent  		= ! isset( $data['letter_represent'] ) 		? '' : $data['letter_represent'];
+		$letter_district  		= ! isset( $data['letter_district'] ) 		? '' : $data['letter_district'];
+		$letter_mtg_date  		= ! isset( $data['letter_mtg_date'] )  		? '' : $data['letter_mtg_date'];
 
-		$letter_date     = ! isset( $data['letter_date'] )     ? current_time( 'mysql' )            : $data['letter_date'];
-		$letter_date_gmt = ! isset( $data['letter_date_gmt'] ) ? get_gmt_from_date( $letter_date ) : $data['letter_date_gmt'];
-
-		$letter_content  = ! isset( $data['letter_content'] )  ? '' : $data['letter_content'];
-		$letter_approved = ! isset( $data['letter_approved'] ) ? 0  : $data['letter_approved'];
-		$letter_featured = ! isset( $data['letter_featured'] ) ? 0  : $data['featured'];
-		$letter_type     = ! isset( $data['letter_type'] )     ? '' : $data['letter_type'];
-
-		$letter_user_ID  = ! isset( $data['letter_user_ID'] ) ? 0 : $data['letter_user_ID'];
-		
 		$wpdb->insert( $wpdb->prefix . 'dagos_letters', array(
-			'letter_featured' 		=> $letter_featured,
-			'letter_author' 		=> $letter_author,
-			'letter_author_email' 	=> $letter_author_email,
-			'letter_author_agent'	=> $letter_author_agent,
-			'letter_author_IP' 		=> $letter_author_IP,
+			'letter_name'	 		=> $letter_author,
+			'letter_email'		 	=> $letter_author_email,
 			'letter_date' 			=> $letter_date,
 			'letter_date_gmt' 		=> $letter_date_gmt,
 			'letter_content' 		=> $letter_content,
-			'letter_approved' 		=> $letter_approved,
-			'letter_type' 			=> $letter_type,
-			'letter_user_ID' 		=> $letter_user_ID
+			'letter_complete' 		=> $letter_complete,
+			'letter_represent' 		=> $letter_represent,
+			'letter_district' 		=> $letter_district,
+			'letter_meeting_date' 	=> $letter_mtg_date,
 		) );
 		$id = (int) $wpdb->insert_id;
 
@@ -371,33 +319,13 @@ class Dagos_Letters_Admin {
 	 */
 	public function dagos_letters_filter_letter($letterdata) {		
 
-		if ( isset( $letterdata['letter_user_ID'] ) ) {
-			/**
-			 * Filters the comment author's user id before it is set.
-			 */
-			$letterdata['letter_user_ID'] = apply_filters( 'pre_user_id', $letterdata['letter_user_ID'] );
-		} elseif ( isset( $letterdata['letter_user_ID'] ) ) {
-			/** This filter is documented in wp-includes/comment.php */
-			$letterdata['letter_user_ID'] = apply_filters( 'pre_user_id', $letterdata['letter_user_ID'] );
-		}
-
-		/**
-		 * Filters the comment author's browser user agent before it is set.
-		 */
-		$letterdata['letter_author_agent'] = apply_filters( 'pre_comment_user_agent', ( isset( $letterdata['letter_author_agent'] ) ? $letterdata['letter_author_agent'] : '' ) );
-		/** This filter is documented in wp-includes/comment.php */
 		$letterdata['letter_author'] = apply_filters( 'pre_comment_author_name', $letterdata['letter_author'] );
-		/**
-		 * Filters the comment content before it is set.
-		 */
 		$letterdata['letter_content'] = apply_filters( 'pre_comment_content', $letterdata['letter_content'] );
-		/**
-		 * Filters the comment author's IP before it is set.
-		 */
-		$letterdata['letter_author_IP'] = apply_filters( 'pre_comment_user_ip', $letterdata['letter_author_IP'] );
-
-		/** This filter is documented in wp-includes/comment.php */
+		$letterdata['letter_mtg_date'] = apply_filters( 'pre_comment_content', $letterdata['letter_mtg_date'] );
+		$letterdata['letter_represent'] = apply_filters( 'pre_comment_content', $letterdata['letter_represent'] );
+		$letterdata['letter_district'] = apply_filters( 'pre_comment_content', $letterdata['letter_district'] );
 		$letterdata['letter_author_email'] = apply_filters( 'pre_comment_author_email', $letterdata['letter_author_email'] );
+
 		$letterdata['filtered'] = true;
 
 		return $letterdata;

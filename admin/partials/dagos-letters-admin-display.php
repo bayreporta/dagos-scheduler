@@ -29,8 +29,7 @@ $table = $wpdb->prefix . 'dagos_letters';
 $query = array();
 $query[] = "SELECT *";
 $query[] = "FROM wp_dagos_letters";
-$query[] = "WHERE letter_post_ID != -1";
-
+/*
 //approved
 if ( isset($_GET['approve']) ){
 	$_GET['approve'] === '-1' ? '' : $query[] = "AND letter_approved='" . (string)$_GET['approve'] . "'";
@@ -39,7 +38,7 @@ if ( isset($_GET['approve']) ){
 //filter
 if ( isset($_GET['filter']) ){
 	$_GET['filter'] === '-1' ? '' : $query[] = "AND letter_type='" . (string)$_GET['filter'] . "'";
-}
+}*/
 
 //pagination
 $page = 1;
@@ -71,9 +70,9 @@ $max_pages = ceil( $letter_count / $per_page );
 ?>
 <!-- This file should primarily consist of HTML with a little bit of PHP. -->
 <div id="dagos-letters-letter-control-area" class="wrap">
-	<h1><?php _e( 'Dago\'s Letters to the Editor' ); ?></h1>
+	<h1><?php _e( 'Dago\'s Scheduler' ); ?></h1>
 
-	<ul class="subsubsub">
+	<!--<ul class="subsubsub">
 		<li><strong>Filter by approved:</strong></li><br />
 		<li>
 			<a href="" onclick="dagosLettersPrePostURLCleaning('<?php echo $actual_url ?>', 'approve', '-1' ); return false;" class="<?php if ( ! isset($_GET['approve']) || $_GET['approve'] === '-1' ) echo 'current'; ?>">All</a> |
@@ -100,7 +99,7 @@ $max_pages = ceil( $letter_count / $per_page );
 		<li>
 			<a href="" onclick="dagosLettersPrePostURLCleaning('<?php echo $actual_url ?>', 'filter', 'information' ); return false;" class="<?php if ( isset($_GET['filter']) && $_GET['filter'] === 'information') echo 'current'; ?>">Requests for Information</a>		
 		</li>
-	</ul>
+	</ul>-->
 
 	<form id="letter-form" method="get" >		
 		<div class="tablenav top">		
@@ -151,9 +150,9 @@ $max_pages = ceil( $letter_count / $per_page );
 				<tr>
 					<td id="cb" class="manage-column column-cb check-column">
 					</td>
-					<th scope="col" id="author" class="manage-column column-author">Author</th>
-					<th scope="col" id="comment" class="manage-column column-comment column-primary">Letter</th>
-					<th scope="col" id="response" class="manage-column column-response">In Response To</th>
+					<th scope="col" id="author" class="manage-column column-author">Submitter</th>
+					<th scope="col" id="comment" class="manage-column column-comment column-primary">Purpose of Meeting</th>
+					<th scope="col" id="response" class="manage-column column-response">Details</th>
 					<th scope="col" id="date" class="manage-column column-date">Submitted On</th>	
 				</tr>
 			</thead>
@@ -163,11 +162,10 @@ $max_pages = ceil( $letter_count / $per_page );
 						print '<h2>No letters found.</h2>';
 					} else {
 						foreach ($results as $result) {					
-							$ret = '';
-							$title = get_the_title( $result->letter_post_ID );
-							$url = get_the_permalink( $result->letter_post_ID );
+							$ret = '';							
 							$content = $result->letter_content;
-							$result->letter_approved === '0' ? $class = 'Approve' : $class = 'Unapprove';
+							$result->letter_complete === '0' ? $class = 'Complete' : $class = 'Not Complete';
+							$class === 'Complete' ? $cssClass = 'Approve' : $cssClass = 'Unapprove';
 
 							//date convertions
 							$date = strtotime($result->letter_date);
@@ -180,14 +178,15 @@ $max_pages = ceil( $letter_count / $per_page );
 							$content = explode( "\n", $content );
 
 							$ret = '<tr id="comment-' . $result->id .'" class="comment even thread-even depth-1 approved'; 
-							$ret .= $result->letter_approved !== '1' ? ' unapproved' : '';
+							$ret .= $result->letter_complete !== '1' ? ' unapproved' : '';
 							$ret .= '" data-type="' . $result->letter_type .'" data-id="' . $result->letter_type .'">';
 								$ret .= '<th scope="row" class="check-column">';$ret .= '</th>'; 
+								//column 1
 								$ret .= '<td class="author column-author" data-colname="Author">'; 
-									$ret .= '<strong>' . $result->letter_author .'</strong><br>'; 
-									$ret .= '<a href="mailto:' . $result->letter_author_email .'">' . $result->letter_author_email .'</a><br>'; 
-									$ret .= '<span>' . $result->letter_author_IP .'</span>'; 
+									$ret .= '<strong>' . $result->letter_name .'</strong><br>'; 
+									$ret .= '<a href="mailto:' . $result->letter_email .'">' . $result->letter_email .'</a><br>'; 
 								$ret .= '</td>'; 
+								//column 2
 								$ret .= '<td class="comment column-comment has-row-actions column-primary" data-colname="Letter">'; 
 									$ret .= '<div class="letter-contents">';
 										foreach ($content as $c) {
@@ -195,10 +194,10 @@ $max_pages = ceil( $letter_count / $per_page );
 								        }
 							        $ret .= '</div>';
 									$ret .= '<div class="row-actions">';										
-										$ret .= '<span class="' . $class . '" data-postid="' . $result->letter_post_ID . '" data-letter="' . $result->id . '" data-email="' . $result->letter_author_email . '">
+										$ret .= '<span class="' . $cssClass . '" data-letter="' . $result->id . '">
 													<a aria-label="' . $class . ' this letter">' . $class . '</a>
-												</span>';	
-										$ret .= '<span class="edit" data-letter="' . $result->id . '" data-post-id="' . $result->letter_post_ID . '"> | 
+												</span>';
+										$ret .= '<span class="edit" data-letter="' . $result->id . '"> | 
 													<a aria-label="Edit this letter">Edit</a>
 												</span>';
 										$ret .= '<span class="trash" data-letter="' . $result->id . '"> | 
@@ -209,12 +208,15 @@ $max_pages = ceil( $letter_count / $per_page );
 												<span class="screen-reader-text">Show more details</span>
 											</button>'; 
 								$ret .= '</td>'; 
+								//column 3
 								$ret .= '<td class="response column-response" data-colname="In Response To">'; 
 									$ret .= '<div class="response-links">'; 
-										$ret .= '<a href="http://localhost/wp-admin/post.php?post=' . $result->letter_post_ID . '&amp;action=edit" class="comments-edit-item-link">' . $title .'</a>'; 
-										$ret .= '<a href="' . $url . '" class="comments-view-item-link">View Post</a>'; 
+										$ret .= '<strong>' . $result->letter_represent .'</strong><br>'; 
+										$ret .= $result->letter_district . '<br>';
+										$ret .= 'on ' . $result->letter_meeting_date . '<br>';
 									$ret .= '</div>'; 
 								$ret .= '</td>'; 
+								//column 4
 								$ret .= '<td class="date column-date" data-colname="Submitted On">'; 
 									$ret .= '<div class="submitted-on">'; 
 										$ret .= $date . ' at ' . $time;
@@ -229,7 +231,7 @@ $max_pages = ceil( $letter_count / $per_page );
 					<form id="update-letters">						
 						<div id="replycontainer">
 							<label for="replycontent" class="screen-reader-text">Comment</label>
-							<div id="wp-replycontent-wrap" class="wp-core-ui wp-editor-wrap html-active"><link rel="stylesheet" id="editor-buttons-css" href="http://localhost/wp-includes/css/editor.min.css?ver=4.7.3" type="text/css" media="all">
+							<div id="wp-replycontent-wrap" class="wp-core-ui wp-editor-wrap html-active"><link rel="stylesheet" id="editor-buttons-css" href="http://upholdingdemocracy.org/wp-includes/css/editor.min.css?ver=4.7.3" type="text/css" media="all">
 								<div id="wp-replycontent-editor-container" class="wp-editor-container">
 									<textarea class="wp-editor-area" rows="20" cols="40" name="replycontent" id="replycontent"></textarea>
 								</div>
@@ -240,29 +242,29 @@ $max_pages = ceil( $letter_count / $per_page );
 						<div id="edithead" style="">
 							<div class="inside">
 								<label for="author-name">Name</label>
-								<input type="text" name="author" size="50" value="" id="author-name">
+								<input type="text" name="name" size="50" value="" id="author-name">
 							</div>
 							<div class="inside">
 								<label for="author-email">Email</label>
-								<input type="text" name="author_email" size="50" value="" id="author-email">
+								<input type="text" name="email" size="50" value="" id="author-email">
 							</div>
 						</div>
 
 						<p id="replysubmit" class="submit">
 							<a href="" class="cancel button alignleft">Cancel</a>
-							<a href="" class="update button button-primary alignright" data-post-id="letter_post_ID">Update</a>
+							<a href="" class="update button button-primary alignright">Update</a>
 						</p>
           				
 					</form>
-				</tr>				
+				</tr>	
 			</tbody>
 			<tfoot>
 				<tr>
 					<td class="manage-column column-cb check-column"></td>
-					<th scope="col" class="manage-column column-author">Author</th>
-					<th scope="col" class="manage-column column-comment column-primary">Letter</th>
-					<th scope="col" class="manage-column column-response">In Response To</th>
-					<th scope="col" class="manage-column column-date">Submitted On</th>	
+					<th scope="col" id="author" class="manage-column column-author">Submitter</th>
+					<th scope="col" id="comment" class="manage-column column-comment column-primary">Purpose of Meeting</th>
+					<th scope="col" id="response" class="manage-column column-response">Details</th>
+					<th scope="col" id="date" class="manage-column column-date">Submitted On</th>	
 				</tr>
 			</tfoot>
 		</table>
@@ -350,12 +352,10 @@ $max_pages = ceil( $letter_count / $per_page );
 		jQuery('.trash').add('.Approve').add('.Unapprove').on('click', function(){
 			event.preventDefault();
 
-			jQuery.ajax('http://localhost/wp-content/plugins/dagos-letters/admin/partials/dagos-letters-admin-menu-actions.php', {
+			jQuery.ajax('http://upholdingdemocracy.org/wp-content/plugins/dagos-scheduler/admin/partials/dagos-letters-admin-menu-actions.php', {
 				cache: false,
 				data: {
 					'id': 		jQuery(this).attr('data-letter'),
-					'article': 	jQuery(this).attr('data-postid'),
-					'email': 	jQuery(this).attr('data-email'),
 					'target': 	jQuery(this).attr('class') 
 				},
 				success: function(data) {
@@ -413,11 +413,10 @@ $max_pages = ceil( $letter_count / $per_page );
 		//update letter
 		jQuery('#replysubmit .update').on('click', function(){
 			event.preventDefault();
-			jQuery.ajax('http://localhost/wp-content/plugins/dagos-letters/admin/partials/dagos-letters-admin-menu-actions.php', {
+			jQuery.ajax('http://upholdingdemocracy.org/wp-content/plugins/dagos-scheduler/admin/partials/dagos-letters-admin-menu-actions.php', {
 				cache: false,
 				data: {
 					'id': 		jQuery(this).attr('data-letter-id'),
-					'postid': 	jQuery(this).attr('data-post-id'),
 					'name': 	jQuery(' #replyrow #author-name ').attr( 'value' ),
 					'email': 	jQuery(' #replyrow #author-email ').attr( 'value' ), 
 					'content':  jQuery(' #replyrow #replycontainer textarea ').val()

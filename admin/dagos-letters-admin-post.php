@@ -65,12 +65,14 @@ if ( $_POST["g-recaptcha-response"] ) {
 
 if ( !filter_var($_POST['email'], FILTER_VALIDATE_EMAIL ) /*&& $response->success && $response !== null*/ ){
 	$location .= '?error_email';
-} elseif ( $response->success && $response !== null ) {
-	//$status = Dagos_Letters_Admin::dagos_letters_submission( wp_unslash( $_POST ) );
+//} elseif ( $response->success && $response !== null ) {
+} else {
+	$status = Dagos_Letters_Admin::dagos_letters_submission( wp_unslash( $_POST ) );
+	var_dump($status);
 
-	//Dagos_Letters_Admin::dagos_letters_email_editors( $_POST );
+	Dagos_Letters_Admin::dagos_letters_email_editors( $_POST );
 
-	//$location .= '?' . $status;
+	$location .= '?' . $status;
 }
 //wp_safe_redirect( $location );
 exit;
