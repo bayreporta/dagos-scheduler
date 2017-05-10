@@ -348,8 +348,8 @@ $max_pages = ceil( $letter_count / $per_page );
 
 	/* #2: APPROVE/UNAPPROVE LETTER
 	----------------------------------------------------*/
-	jQuery(document).ready(function(){
-		jQuery('.trash').add('.Approve').add('.Unapprove').on('click', function(){
+	jQuery(document).ready(function(event){
+		jQuery('.trash').add('.Approve').add('.Unapprove').on('click', function(event){
 			event.preventDefault();
 
 			jQuery.ajax('http://upholdingdemocracy.org/wp-content/plugins/dagos-scheduler/admin/partials/dagos-letters-admin-menu-actions.php', {
@@ -371,7 +371,7 @@ $max_pages = ceil( $letter_count / $per_page );
 	jQuery(document).ready(function(){
 
 		//edit screen
-		jQuery('.edit').on('click', function(){
+		jQuery('.edit').on('click', function(event){
 			event.preventDefault();
 
 			//data
@@ -401,7 +401,7 @@ $max_pages = ceil( $letter_count / $per_page );
 		});
 
 		//cancel transaction
-		jQuery('#replysubmit .cancel').on('click', function(){
+		jQuery('#replysubmit .cancel').on('click', function(event){
 			event.preventDefault();
 
 			//restore all
@@ -411,7 +411,7 @@ $max_pages = ceil( $letter_count / $per_page );
 		});
 
 		//update letter
-		jQuery('#replysubmit .update').on('click', function(){
+		jQuery('#replysubmit .update').on('click', function(event){
 			event.preventDefault();
 			jQuery.ajax('http://upholdingdemocracy.org/wp-content/plugins/dagos-scheduler/admin/partials/dagos-letters-admin-menu-actions.php', {
 				cache: false,
